@@ -17,14 +17,11 @@ namespace MeetRoomWebApp.Models.Implements
             using (var context = new MeetRoomDbContext())
             {
                 return context.Sessions
-                    .Include(rec => rec.Room)
                     .Include(rec => rec.ClientSessions)
                     .ThenInclude(rec => rec.User)
                     .Select(rec => new SessionViewModel
                     {
                         Id = rec.Id,
-                        RoomId = rec.RoomId,
-                        RoomName = rec.Room.Name,
                         DateSession = rec.DateSession,
                         SessionDurationInMinutes = rec.SessionDurationInMinutes,
                         ClientSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
@@ -37,19 +34,18 @@ namespace MeetRoomWebApp.Models.Implements
             using (var context = new MeetRoomDbContext())
             {
                 return context.Sessions
-                    .Include(rec => rec.Room)
                     .Include(rec => rec.ClientSessions)
                     .ThenInclude(rec => rec.User)
-                    .Where(rec => model.DateSession.ToShortDateString() == rec.DateSession.ToShortDateString())
+                    .Where(rec => rec.DateSession.Date == model.DateSession.Date)
+                    .ToList()
                     .Select(rec => new SessionViewModel
                     {
                         Id = rec.Id,
-                        RoomId = rec.RoomId,
-                        RoomName = rec.Room.Name,
                         DateSession = rec.DateSession,
                         SessionDurationInMinutes = rec.SessionDurationInMinutes,
                         ClientSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
-                    }).ToList();
+                    })
+                    .ToList();
             }
         }
 
@@ -63,13 +59,12 @@ namespace MeetRoomWebApp.Models.Implements
             using (var context = new MeetRoomDbContext())
             {
                 var session = context.Sessions
+                    .Include(rec => rec.ClientSessions)
                     .FirstOrDefault(rec => rec.Id == model.Id);
 
                 return session != null ? new SessionViewModel
                 { 
                     Id = session.Id,
-                    RoomId = session.RoomId,
-                    RoomName = session.Room.Name,
                     DateSession = session.DateSession,
                     SessionDurationInMinutes = session.SessionDurationInMinutes,
                     ClientSessions = session.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
@@ -153,7 +148,6 @@ namespace MeetRoomWebApp.Models.Implements
 
         private Session CreateModel(SessionBindingModel model, Session session, MeetRoomDbContext context)
         {
-            session.RoomId = model.RoomId;
             session.DateSession = model.DateSession;
             session.SessionDurationInMinutes = model.SessionDurationInMinutes;
 

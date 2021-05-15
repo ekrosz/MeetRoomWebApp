@@ -10,10 +10,6 @@ namespace MeetRoomWebApp.Data.Entities
         [Key]
         public int Id { get; set; }
 
-        public int RoomId { get; set; }
-
-        public virtual Room Room { get; set; }
-
         [Required]
         public DateTime DateSession { get; set; }
 

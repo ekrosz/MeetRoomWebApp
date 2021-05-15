@@ -1,8 +1,117 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@using MeetRoomWebApp.Models.ViewModels;
+@model Dictionary<DateTime, List<SessionViewModel>>;
+@{
+    ViewData["Title"] = "Schedule";
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    string week = string.Empty;
+    string day = string.Empty;
+    double startY = 0;
+    double heightY = 0;
+    double finishY = 0;
+
+    <div>
+        <div class="row">
+            <div class="col-sm">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong">
+                    Book now
+                </button>
+
+                <!-- Modal -->
+                <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">Meet room booking</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post">
+                                    <div>
+                                        <label class="label-with-margin">Desired date: </label>
+                                        <input 
+                                               id="bookingDate" 
+                                               name="bookingDate"
+                                               class="form-control" 
+                                               type="date" />
+                                    </div>
+                                    <div>
+                                        <label class="label-with-margin">Desired time: </label>
+                                        <select 
+                                                id="bookingTime" 
+                                                name="bookingTime" 
+                                                class="form-control" 
+                                                asp-items="@(new SelectList(ViewBag.Time, "Time"))"></select>
+                                    </div>
+                                    <div>
+                                        <label class="label-with-margin">Session duration (minutes): </label>
+                                        <input 
+                                               id="duration"
+                                               name="duration" 
+                                               class="form-control" 
+                                               type="number" 
+                                               min="30" 
+                                               max="720" 
+                                               step="30" 
+                                               value="30" />
+                                    </div>
+                                    <div>
+                                        <label class="label-with-margin">Guests: </label>
+                                        <select 
+                                                multiple 
+                                                id="user"
+                                                name="user"
+                                                class="form-control" 
+                                                asp-items="@(new MultiSelectList(ViewBag.Users, "Id", "Email"))"></select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Days in the week -->
+            @foreach (var item in Model.Keys)
+            {
+                <div class="col-sm" style="text-align: center">
+                    <h5>@(week = item.DayOfWeek.ToString())</h5>
+                    <h5>@(day = item.ToShortDateString())</h5>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row" style="background-color: black">
+
+        <!-- Time in the day -->
+        <div class="col-lg" style="background-color: white;">
+            @foreach (var item in ViewBag.Time)
+            {
+                <h5>@item</h5>
+            }
+        </div>
+
+        <!-- Sessions -->
+        @foreach (var item in Model)
+        {
+            <div class="col-lg" style="background-color: white; margin-left: 2px;" @(finishY = 0)>
+                @foreach (var session in item.Value)
+                {
+                    <div style="width: fit-content(); margin-top: @(startY = (32 * (((session.DateSession.Hour * 60) + session.DateSession.Minute) / 30)) + 12 - finishY)px; background-color: yellow; height: @(heightY = 32 * session.SessionDurationInMinutes / 30)px; text-align: center;" @(finishY += startY + heightY)>
+                        <h5>Главная</h5>
+                        @foreach (var user in session.ClientSessions)
+                        {
+                            <h6>@user.Value</h6>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

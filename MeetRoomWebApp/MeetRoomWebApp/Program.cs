@@ -1,3 +1,4 @@
+using MeetRoomWebApp.Models.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +12,8 @@ namespace MeetRoomWebApp
 {
     public class Program
     {
+        public static UserViewModel User { get; set; }
+
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();

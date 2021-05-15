@@ -1,5 +1,7 @@
 using MeetRoomWebApp.Data;
 using MeetRoomWebApp.Data.Entities;
+using MeetRoomWebApp.Models.Implements;
+using MeetRoomWebApp.Models.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -34,6 +36,10 @@ namespace MeetRoomWebApp
             services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<MeetRoomDbContext>();
             services.AddControllersWithViews();
+            services.AddRazorPages();
+
+            services.AddTransient<ISessionStorage, SessionStorage>();
+            services.AddTransient<IUserStorage, UserStorage>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

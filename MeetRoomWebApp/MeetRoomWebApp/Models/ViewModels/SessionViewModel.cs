@@ -7,10 +7,6 @@ namespace MeetRoomWebApp.Models.ViewModels
     {
         public int Id { get; set; }
 
-        public int RoomId { get; set; }
-
-        public string RoomName { get; set; }
-
         public DateTime DateSession { get; set; }
 
         public int SessionDurationInMinutes { get; set; }

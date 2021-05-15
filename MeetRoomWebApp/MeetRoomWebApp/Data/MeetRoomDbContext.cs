@@ -16,8 +16,6 @@ namespace MeetRoomWebApp.Data
             base.OnConfiguring(optionsBuilder);
         }
 
-        public virtual DbSet<Room> Rooms { get; set; }
-
         public virtual DbSet<User> Users { get; set; }
 
         public virtual DbSet<Session> Sessions { get; set; }
