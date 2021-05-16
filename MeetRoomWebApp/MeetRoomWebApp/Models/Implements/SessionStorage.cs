@@ -24,7 +24,7 @@ namespace MeetRoomWebApp.Models.Implements
                         Id = rec.Id,
                         DateSession = rec.DateSession,
                         SessionDurationInMinutes = rec.SessionDurationInMinutes,
-                        ClientSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
+                        UserSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
                     }).ToList();
             }
         }
@@ -43,33 +43,9 @@ namespace MeetRoomWebApp.Models.Implements
                         Id = rec.Id,
                         DateSession = rec.DateSession,
                         SessionDurationInMinutes = rec.SessionDurationInMinutes,
-                        ClientSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
+                        UserSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
                     })
                     .ToList();
-            }
-        }
-
-        public SessionViewModel GetElement(SessionBindingModel model)
-        {
-            if (model == null)
-            {
-                return null;
-            }
-
-            using (var context = new MeetRoomDbContext())
-            {
-                var session = context.Sessions
-                    .Include(rec => rec.ClientSessions)
-                    .FirstOrDefault(rec => rec.Id == model.Id);
-
-                return session != null ? new SessionViewModel
-                { 
-                    Id = session.Id,
-                    DateSession = session.DateSession,
-                    SessionDurationInMinutes = session.SessionDurationInMinutes,
-                    ClientSessions = session.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
-                } :
-                null;
             }
         }
 
@@ -81,40 +57,31 @@ namespace MeetRoomWebApp.Models.Implements
                 {
                     try
                     {
-                        CreateModel(model, new Session(), context);
-                        context.SaveChanges();
-
-                        transaction.Commit();
-                    }
-                    catch
-                    {
-                        transaction.Rollback();
-
-                        throw;
-                    }
-                }
-            }
-        }
-
-        public void Edit(SessionBindingModel model)
-        {
-            using (var context = new MeetRoomDbContext())
-            {
-                using (var transaction = context.Database.BeginTransaction())
-                {
-                    try
-                    {
-                        var element = context.Sessions
-                            .FirstOrDefault(rec => rec.Id == model.Id);
-
-                        if (element == null)
+                        if (model.DateSession.Date == model.DateSession.AddMinutes(model.SessionDuration).Date)
                         {
-                            throw new Exception("Элемент не найден");
+                            CreateModel(model, new Session(), context);
+                            context.SaveChanges();
+                        }
+                        else
+                        {
+                            var firstModel = new SessionBindingModel
+                            {
+                                DateSession = model.DateSession,
+                                SessionDuration = Convert.ToInt32((model.DateSession.AddDays(1).Date - model.DateSession).TotalMinutes),
+                                UserSessions = model.UserSessions
+                            };
+                            var secondModel = new SessionBindingModel
+                            {
+                                DateSession = model.DateSession.AddDays(1).Date,
+                                SessionDuration = model.SessionDuration - firstModel.SessionDuration,
+                                UserSessions = model.UserSessions
+                            };
+
+                            CreateModel(firstModel, new Session(), context);
+                            CreateModel(secondModel, new Session(), context);
+                            context.SaveChanges();
                         }
 
-                        CreateModel(model, element, context);
-                        context.SaveChanges();
-
                         transaction.Commit();
                     }
                     catch
@@ -123,38 +90,33 @@ namespace MeetRoomWebApp.Models.Implements
 
                         throw;
                     }
-                }
-            }
-        }
-
-        public void Delete(SessionBindingModel model)
-        {
-            using (var context = new MeetRoomDbContext())
-            {
-                Session element = context.Sessions
-                    .FirstOrDefault(rec => rec.Id == model.Id);
-
-                if (element != null)
-                {
-                    context.Sessions.Remove(element);
-                    context.SaveChanges();
-                }
-                else
-                {
-                    throw new Exception("Элемент не найден");
                 }
             }
         }
 
         private Session CreateModel(SessionBindingModel model, Session session, MeetRoomDbContext context)
         {
+            var otherSessions = context.Sessions
+                .Where(rec => rec.DateSession.Date == model.DateSession.Date || rec.DateSession.Date == model.DateSession.AddDays(1).Date)
+                .OrderBy(rec => rec.DateSession);
+
+            foreach(var item in otherSessions)
+            {
+                if(model.DateSession < item.DateSession && model.DateSession.AddMinutes(model.SessionDuration) > item.DateSession ||
+                    model.DateSession < item.DateSession.AddMinutes(item.SessionDurationInMinutes) && model.DateSession.AddMinutes(model.SessionDuration) > item.DateSession.AddMinutes(item.SessionDurationInMinutes) ||
+                    model.DateSession > item.DateSession && model.DateSession.AddMinutes(model.SessionDuration) < item.DateSession.AddMinutes(item.SessionDurationInMinutes))
+                {
+                    throw new Exception("В этом промежутке времени есть бронь");
+                }
+            }
+
             session.DateSession = model.DateSession;
-            session.SessionDurationInMinutes = model.SessionDurationInMinutes;
+            session.SessionDurationInMinutes = model.SessionDuration;
 
             if (session.Id == 0)
             {
-                context.Sessions.Add(session);
-                context.SaveChanges();
+                    context.Sessions.Add(session);
+                    context.SaveChanges();
             }
 
             if (model.Id.HasValue)

@@ -11,6 +11,6 @@ namespace MeetRoomWebApp.Models.ViewModels
 
         public int SessionDurationInMinutes { get; set; }
 
-        public Dictionary<string, string> ClientSessions { get; set; }
+        public Dictionary<string, string> UserSessions { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace MeetRoomWebApp.Models.BindingModels
 {
@@ -7,14 +8,12 @@ namespace MeetRoomWebApp.Models.BindingModels
     {
         public int? Id { get; set; }
 
+        [DisplayName("Дата брони")]
         public DateTime DateSession { get; set; }
 
-        public int SessionDurationInMinutes { get; set; }
+        [DisplayName("Длительность")]
+        public int SessionDuration { get; set; }
 
         public Dictionary<string, string> UserSessions { get; set; }
-
-        public DateTime? DateFrom { get; set; }
-
-        public DateTime? DateTo { get; set; }
     }
 }

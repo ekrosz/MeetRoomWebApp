@@ -12,7 +12,7 @@ namespace MeetRoomWebApp
 {
     public class Program
     {
-        public static UserViewModel User { get; set; }
+        public static DateTime DayInWeek { get; set; } = DateTime.Now;
 
         public static void Main(string[] args)
         {

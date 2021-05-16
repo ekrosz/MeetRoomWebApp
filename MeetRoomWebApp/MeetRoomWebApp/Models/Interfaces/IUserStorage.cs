@@ -7,6 +7,6 @@ namespace MeetRoomWebApp.Models.Interfaces
     {
         public List<UserViewModel> GetFullList();
 
-        public List<UserViewModel> GetFilteredList(int sessionId);
+        public UserViewModel GetElement(string user);
     }
 }

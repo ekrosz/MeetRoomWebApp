@@ -10,12 +10,6 @@ namespace MeetRoomWebApp.Models.Interfaces
 
         public List<SessionViewModel> GetFilteredList(SessionBindingModel model);
 
-        public SessionViewModel GetElement(SessionBindingModel model);
-
         public void Insert(SessionBindingModel model);
-
-        public void Edit(SessionBindingModel model);
-
-        public void Delete(SessionBindingModel model);
     }
 }

@@ -20,25 +20,19 @@ namespace MeetRoomWebApp.Models.Implements
             }
         }
 
-        public List<UserViewModel> GetFilteredList(int sessionId)
+        public UserViewModel GetElement(string user)
         {
             using (var context = new MeetRoomDbContext())
             {
-                var sessionUsers = context.UserSessions
-                    .Where(rec => rec.Id == sessionId)
-                    .ToList();
+                var result = context.Users
+                     .FirstOrDefault(rec => rec.Id == user || rec.UserName == user);
 
-                List<UserViewModel> resultList = new List<UserViewModel>();
-
-                sessionUsers.ForEach(i => resultList.Add((UserViewModel)context.Users
-                    .Where(rec => rec.Id == i.UserId)
-                    .Select(rec => new UserViewModel 
-                    {
-                        Id = rec.Id, 
-                        Email = rec.Email,
-                    })));
-
-                return resultList;
+                return user != null ? new UserViewModel
+                {
+                    Id = result.Id,
+                    Email = result.Email
+                } :
+                null;
             }
         }
     }
