@@ -80,8 +80,24 @@ namespace MeetRoomWebApp.Controllers
 
             var creator = _userStorage.GetElement(User.Identity.Name);
 
+            if (creator == null)
+            {
+                throw new Exception("Создатель сеанса не найден");
+            }
+
             usersDict.Add(creator.Id, creator.Email);
-            users.ForEach(userId => usersDict.Add(userId, _userStorage.GetElement(userId).Email));
+
+            foreach(var userId in users)
+            {
+                var userEmail = _userStorage.GetElement(userId).Email;
+
+                if(userEmail == null)
+                {
+                    throw new Exception("Добавленный гость не найден");
+                }
+
+                usersDict.Add(userId, userEmail);
+            }
 
             _sessionStorage.Insert(new SessionBindingModel 
             {
