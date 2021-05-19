@@ -61,7 +61,6 @@ html {
 body {
     /* Margin bottom by footer height */
     margin-bottom: 60px;
-    background-color: #14213D;
 }
 .footer {
   position: absolute;
@@ -88,7 +87,7 @@ h6 {
     color: #1d1d1d;
 }
 
-.col-lg {
+.bg-dark-blue {
     background-color: #14213D;
 }
 
@@ -127,4 +126,12 @@ h6 {
 .email {
     width: 103px;
     overflow: hidden;
+}
+
+.bg-black {
+    background-color: black;
+}
+
+.flex-nowrap {
+    flex-wrap: nowrap;
 }

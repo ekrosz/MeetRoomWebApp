@@ -10,12 +10,12 @@
     double finishY = 0;
     }
 <html>
-    <body>
-        <div class="container">
+    <body class="bg-dark-blue">
+        <div class="container bg-dark-blue">
             <div>
                 <div class="text-center">
                     <h2>MeetRoom: Schedule</h2>
-                    <div class="row">
+                    <div class="row flex-nowrap">
                         <div class="col-sm-6 text-left">
                             <button type="button" class="btn btn-primary btn-bg-dark" id="btnIncrement" onclick="IncrementWeekBack(); document.location.reload(true);"><</button>
                         </div>
@@ -25,7 +25,7 @@
                     </div>
                 </div>
                 <p>
-                    <div class="row">
+                    <div class="row flex-nowrap">
                         <div class="col-sm">
                             <button type="button" class="btn btn-primary btn-bg-dark" data-toggle="modal" data-target="#ModalBookingNow">
                                 Book now
@@ -99,10 +99,10 @@
                 </p>
             </div>
 
-            <div class="row" style="background-color: black">
+            <div class="row flex-nowrap bg-black">
 
                 <!-- Time in the day -->
-                <div class="col-lg">
+                <div class="col-lg bg-dark-blue">
                     @foreach (var item in ViewBag.Time)
                     {
                         <h5>@(item)</h5>
@@ -111,8 +111,8 @@
 
                 <!-- Sessions -->
                 @foreach (var item in Model)
-                {
-                    <div class="col-lg col-margin-left" @(finishY = 0)>
+                 {
+                    <div class="col-lg col-margin-left bg-dark-blue" @(finishY = 0)>
                         @foreach (var session in item.Value)
                         {
                             <div class="book-style text-center email" style="margin-top: @(startY = (32 * (((session.DateSession.Hour * 60) + session.DateSession.Minute) / 30)) + 12 - finishY)px; height: @(heightY = 32 * session.SessionDurationInMinutes / 30)px;" @(finishY += startY + heightY)>

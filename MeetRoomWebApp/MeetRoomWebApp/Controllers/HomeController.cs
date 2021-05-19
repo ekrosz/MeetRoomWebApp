@@ -4,13 +4,11 @@ using MeetRoomWebApp.Models.Interfaces;
 using MeetRoomWebApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace MeetRoomWebApp.Controllers
 {
@@ -33,21 +31,8 @@ namespace MeetRoomWebApp.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            List<string> time = new List<string>();
-
-            for (int i = 0; i < 24; i++)
-            {
-                if (i < 10)
-                {
-                    time.Add($"0{ i }:00");
-                    time.Add($"0{ i }:30");
-                }
-                else
-                {
-                    time.Add($"{ i }:00");
-                    time.Add($"{ i }:30");
-                }
-            }
+            DateTime dateTimeTemp = DateTime.Parse("00:00:00");
+            List<string> time = Enumerable.Range(0, 48).Select(i => dateTimeTemp.AddMinutes(i * 30).ToString("HH:mm")).ToList();
 
             ViewBag.Users = _userStorage.GetFullList().Where(rec => rec.Email != User.Identity.Name);
             ViewBag.Time = time;
