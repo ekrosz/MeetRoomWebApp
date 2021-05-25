@@ -4,6 +4,9 @@ using System.ComponentModel;
 
 namespace MeetRoomWebApp.Models.BindingModels
 {
+    /// <summary>
+    /// Binding model for "Session" entity 
+    /// </summary>
     public class SessionBindingModel
     {
         public int? Id { get; set; }

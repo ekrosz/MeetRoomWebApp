@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace MeetRoomWebApp.Models.ViewModels
 {
+    /// <summary>
+    /// Model-view "Session" for displaying to the user
+    /// </summary>
     public class SessionViewModel
     {
         public int Id { get; set; }

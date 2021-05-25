@@ -10,6 +10,9 @@ using MeetRoomWebApp.Data.Entities;
 
 namespace MeetRoomWebApp.Models.Implements
 {
+    /// <summary>
+    /// ISessionStorage interface implementation class
+    /// </summary>
     public class SessionStorage : ISessionStorage
     {
         public List<SessionViewModel> GetFullList()

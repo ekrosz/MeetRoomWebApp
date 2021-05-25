@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace MeetRoomWebApp.Data
 {
+    /// <summary>
+    /// The main class for connecting to the database
+    /// </summary>
     public class MeetRoomDbContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

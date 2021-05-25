@@ -7,6 +7,9 @@ using MeetRoomWebApp.Models.ViewModels;
 
 namespace MeetRoomWebApp.Models.Implements
 {
+    /// <summary>
+    /// IUserStorage interface implementation class
+    /// </summary>
     public class UserStorage : IUserStorage
     {
         public List<UserViewModel> GetFullList()

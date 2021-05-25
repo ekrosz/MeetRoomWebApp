@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeetRoomWebApp.Data.Entities
 {
+    /// <summary>
+    /// Database Entity Model - Session
+    /// </summary>
     public class Session
     {
         [Key]

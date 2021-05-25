@@ -2,6 +2,9 @@
 
 namespace MeetRoomWebApp.Data.Entities
 {
+    /// <summary>
+    /// Database Entity Model for Implementing Many-to-Many Relationships (User-Sission)
+    /// </summary>
     public class UserSession
     {
         [Key]

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace MeetRoomWebApp.Models.Interfaces
 {
+    /// <summary>
+    /// Interface with methods of interaction with the database of the "Session" model
+    /// </summary>
     public interface ISessionStorage
     {
         public List<SessionViewModel> GetFullList();

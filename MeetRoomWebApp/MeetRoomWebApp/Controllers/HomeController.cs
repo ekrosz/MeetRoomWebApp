@@ -14,15 +14,12 @@ namespace MeetRoomWebApp.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
         private readonly ISessionStorage _sessionStorage;
 
         private readonly IUserStorage _userStorage;
 
-        public HomeController(ILogger<HomeController> logger, ISessionStorage sessionStorage, IUserStorage userStorage)
+        public HomeController(ISessionStorage sessionStorage, IUserStorage userStorage)
         {
-            _logger = logger;
             _sessionStorage = sessionStorage;
             _userStorage = userStorage;
         }
@@ -32,7 +29,10 @@ namespace MeetRoomWebApp.Controllers
         public IActionResult Index()
         {
             DateTime dateTimeTemp = DateTime.Parse("00:00:00");
-            List<string> time = Enumerable.Range(0, 48).Select(i => dateTimeTemp.AddMinutes(i * 30).ToString("HH:mm")).ToList();
+
+            List<string> time = Enumerable.Range(0, 48)
+                .Select(i => dateTimeTemp.AddMinutes(i * 30).ToString("HH:mm"))
+                .ToList();
 
             ViewBag.Users = _userStorage.GetFullList().Where(rec => rec.Email != User.Identity.Name);
             ViewBag.Time = time;
@@ -62,16 +62,17 @@ namespace MeetRoomWebApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index(DateTime bookingDate, string bookingTime, int duration, List<string> users)
+        public IActionResult Index(DateTime bookingDateTime, DateTime duration, List<string> users)
         {
-            string bookingDateTimeStr = $"{bookingDate.Date.ToShortDateString().Replace(".", "-")} {bookingTime}:00";
-            DateTime bookingDateTime = DateTime.Parse(bookingDateTimeStr);
-
             if (bookingDateTime <= DateTime.Now)
             {
                 throw new Exception("Вы указали дату или время меньше текущего");
             }
-            if(duration < 30 && duration % 30 != 0)
+            if (bookingDateTime.Minute % 30 != 0)
+            {
+                throw new Exception("Укажите корректное время начала сеанса");
+            }
+            if (duration.Minute + duration.Hour * 60 < 30 || duration.Minute % 30 != 0)
             {
                 throw new Exception("Укажите корректную длительность сеанса");
             }
@@ -102,23 +103,27 @@ namespace MeetRoomWebApp.Controllers
             _sessionStorage.Insert(new SessionBindingModel 
             {
                 DateSession = bookingDateTime, 
-                SessionDuration = duration, 
+                SessionDuration = (duration.Hour * 60) + duration.Minute, 
                 UserSessions = usersDict
             });
 
             return Redirect("/Home/Index");
         }
 
-        [HttpPost]
-        public void IncrementWeekForward()
+        [HttpGet]
+        public IActionResult GetNextWeek()
         {
             Program.DayInWeek = Program.DayInWeek.AddDays(7);
+
+            return Redirect("/Home/Index");
         }
 
-        [HttpPost]
-        public void IncrementWeekBack()
+        [HttpGet]
+        public IActionResult GetLastWeek()
         {
             Program.DayInWeek = Program.DayInWeek.AddDays(-7);
+
+            return Redirect("/Home/Index");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

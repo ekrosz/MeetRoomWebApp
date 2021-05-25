@@ -1,13 +1,13 @@
-﻿@using MeetRoomWebApp.Models.ViewModels;
+﻿+@using MeetRoomWebApp.Models.ViewModels;
 @model Dictionary<DateTime, List<SessionViewModel>>;
 @{
     ViewData["Title"] = "Schedule";
 
-    string week = string.Empty;
-    string day = string.Empty;
-    double startY = 0;
-    double heightY = 0;
-    double finishY = 0;
+    string dayOfWeek = string.Empty;
+    string date = string.Empty;
+    double startSessionY = 0;
+    double heightSessionY = 0;
+    double finishSessionY = 0;
     }
 <html>
     <body class="bg-dark-blue">
@@ -15,14 +15,16 @@
             <div>
                 <div class="text-center">
                     <h2>MeetRoom: Schedule</h2>
-                    <div class="row flex-nowrap">
-                        <div class="col-sm-6 text-left">
-                            <button type="button" class="btn btn-primary btn-bg-dark" id="btnIncrement" onclick="IncrementWeekBack(); document.location.reload(true);"><</button>
+                    <form method="get">
+                        <div class="row flex-nowrap">
+                            <div class="col-sm-6 text-left">
+                                <button asp-action="GetLastWeek" class="btn btn-primary btn-bg-dark"><</button>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <button asp-action="GetNextWeek" class="btn btn-primary btn-bg-dark">></button>
+                            </div>
                         </div>
-                        <div class="col-sm-6 text-right">
-                            <button type="button" class="btn btn-primary btn-bg-dark" id="btnIncrement" onclick="IncrementWeekForward(); document.location.reload(true);">></button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
                 <p>
                     <div class="row flex-nowrap">
@@ -31,7 +33,7 @@
                                 Book now
                             </button>
 
-                            <!-- Modal -->
+                            <!-- Modal window -->
                             <form method="post">
                                 <div class="modal fade" id="ModalBookingNow" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
@@ -46,27 +48,16 @@
                                                 <div>
                                                     <label class="label-with-margin">Desired date: </label>
                                                     <input id="bookingDate"
-                                                           name="bookingDate"
+                                                           name="bookingDateTime"
                                                            class="form-control"
-                                                           type="date" />
+                                                           type="datetime-local" />
                                                 </div>
                                                 <div>
-                                                    <label class="label-with-margin">Desired time: </label>
-                                                    <select id="bookingTime"
-                                                            name="bookingTime"
-                                                            class="form-control"
-                                                            asp-items="@(new SelectList(ViewBag.Time, "Time"))"></select>
-                                                </div>
-                                                <div>
-                                                    <label class="label-with-margin">Session duration (minutes): </label>
+                                                    <label class="label-with-margin">Session duration: </label>
                                                     <input id="duration"
                                                            name="duration"
                                                            class="form-control"
-                                                           type="number"
-                                                           min="30"
-                                                           max="1440"
-                                                           step="30"
-                                                           value="30" />
+                                                           type="time" />
                                                 </div>
                                                 <div>
                                                     <label class="label-with-margin">Guests: </label>
@@ -87,12 +78,12 @@
                             </form>
                         </div>
 
-                        <!-- Days in the week -->
+                        <!-- Axis of days -->
                         @foreach (var item in Model.Keys)
                         {
                             <div class="col-sm text-center">
-                                <h5>@(week = item.DayOfWeek.ToString())</h5>
-                                <h5>@(day = item.ToShortDateString())</h5>
+                                <h5>@(dayOfWeek = item.DayOfWeek.ToString())</h5>
+                                <h5>@(date = item.ToShortDateString())</h5>
                             </div>
                         }
                     </div>
@@ -101,7 +92,7 @@
 
             <div class="row flex-nowrap bg-black">
 
-                <!-- Time in the day -->
+                <!-- Time axis -->
                 <div class="col-lg bg-dark-blue">
                     @foreach (var item in ViewBag.Time)
                     {
@@ -109,15 +100,16 @@
                     }
                 </div>
 
-                <!-- Sessions -->
+                <!-- Days -->
                 @foreach (var item in Model)
                  {
-                    <div class="col-lg col-margin-left bg-dark-blue" @(finishY = 0)>
+                    <div class="col-lg col-margin-left bg-dark-blue" @(finishSessionY = 0)>
+                        <!-- Sessions -->
                         @foreach (var session in item.Value)
                         {
-                            <div class="book-style text-center email" style="margin-top: @(startY = (32 * (((session.DateSession.Hour * 60) + session.DateSession.Minute) / 30)) + 12 - finishY)px; height: @(heightY = 32 * session.SessionDurationInMinutes / 30)px;" @(finishY += startY + heightY)>
+                            <div class="book-style text-center email" style="margin-top: @(startSessionY = (32 * (((session.DateSession.Hour * 60) + session.DateSession.Minute) / 30)) + 12 - finishSessionY)px; height: @(heightSessionY = 32 * session.SessionDurationInMinutes / 30)px;" @(finishSessionY += startSessionY + heightSessionY)>
                                 <h5 class="color-black">Guests</h5>
-
+                                <!-- Guests -->
                                 @foreach (var user in session.UserSessions)
                                 {
                                     <h6>@string.Join("\n", user.Value.Split('\n').Select(row => row.Remove(row.IndexOf('@'))))</h6>
@@ -125,24 +117,8 @@
                             </div>
                         }
                     </div>
-                }
+                 }
             </div>
         </div>
     </body>
 </html>
-
-<script>
-    function IncrementWeekForward() {
-        $.ajax({
-            type: "POST",
-            url: "/Home/IncrementWeekForward",
-        });
-    }
-
-    function IncrementWeekBack() {
-        $.ajax({
-            type: "POST",
-            url: "/Home/IncrementWeekBack",
-        });
-    }
-</script>
