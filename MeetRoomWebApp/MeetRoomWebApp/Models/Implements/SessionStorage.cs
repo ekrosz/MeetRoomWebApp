@@ -15,84 +15,82 @@ namespace MeetRoomWebApp.Models.Implements
     /// </summary>
     public class SessionStorage : ISessionStorage
     {
+        private readonly MeetRoomDbContext _context;
+
+        public SessionStorage(MeetRoomDbContext context)
+        {
+            _context = context;
+        }
+
         public List<SessionViewModel> GetFullList()
         {
-            using (var context = new MeetRoomDbContext())
-            {
-                return context.Sessions
-                    .Include(rec => rec.ClientSessions)
-                    .ThenInclude(rec => rec.User)
-                    .Select(rec => new SessionViewModel
-                    {
-                        Id = rec.Id,
-                        DateSession = rec.DateSession,
-                        SessionDurationInMinutes = rec.SessionDurationInMinutes,
-                        UserSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
-                    }).ToList();
-            }
+            return _context.Sessions
+                .Include(rec => rec.ClientSessions)
+                .ThenInclude(rec => rec.User)
+                .Select(rec => new SessionViewModel
+                {
+                    Id = rec.Id,
+                    DateSession = rec.DateSession,
+                    SessionDurationInMinutes = rec.SessionDurationInMinutes,
+                    UserSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
+                }).ToList();
         }
 
         public List<SessionViewModel> GetFilteredList(SessionBindingModel model)
         {
-            using (var context = new MeetRoomDbContext())
-            {
-                return context.Sessions
-                    .Include(rec => rec.ClientSessions)
-                    .ThenInclude(rec => rec.User)
-                    .Where(rec => rec.DateSession.Date == model.DateSession.Date)
-                    .ToList()
-                    .Select(rec => new SessionViewModel
-                    {
-                        Id = rec.Id,
-                        DateSession = rec.DateSession,
-                        SessionDurationInMinutes = rec.SessionDurationInMinutes,
-                        UserSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
-                    })
-                    .ToList();
-            }
+            return _context.Sessions
+                .Include(rec => rec.ClientSessions)
+                .ThenInclude(rec => rec.User)
+                .Where(rec => rec.DateSession.Date == model.DateSession.Date)
+                .ToList()
+                .Select(rec => new SessionViewModel
+                {
+                    Id = rec.Id,
+                    DateSession = rec.DateSession,
+                    SessionDurationInMinutes = rec.SessionDurationInMinutes,
+                    UserSessions = rec.ClientSessions.ToDictionary(rec => rec.User.Id, rec => rec.User.Email)
+                })
+                .ToList();
         }
 
         public void Insert(SessionBindingModel model)
         {
-            using (var context = new MeetRoomDbContext())
+            using (var transaction = _context.Database.BeginTransaction())
             {
-                using (var transaction = context.Database.BeginTransaction())
+                try
                 {
-                    try
+                    if (model.DateSession.Date == model.DateSession.AddMinutes(model.SessionDuration).Date)
                     {
-                        if (model.DateSession.Date == model.DateSession.AddMinutes(model.SessionDuration).Date)
-                        {
-                            CreateModel(model, new Session(), context);
-                            context.SaveChanges();
-                        }
-                        else
-                        {
-                            var firstModel = new SessionBindingModel
-                            {
-                                DateSession = model.DateSession,
-                                SessionDuration = Convert.ToInt32((model.DateSession.AddDays(1).Date - model.DateSession).TotalMinutes),
-                                UserSessions = model.UserSessions
-                            };
-                            var secondModel = new SessionBindingModel
-                            {
-                                DateSession = model.DateSession.AddDays(1).Date,
-                                SessionDuration = model.SessionDuration - firstModel.SessionDuration,
-                                UserSessions = model.UserSessions
-                            };
-
-                            CreateModel(firstModel, new Session(), context);
-                            CreateModel(secondModel, new Session(), context);
-                            context.SaveChanges();
-                        }
-
-                        transaction.Commit();
+                        CreateModel(model, new Session(), _context);
+                        _context.SaveChanges();
                     }
-                    catch
+                    else
                     {
-                        transaction.Rollback();
+                        var firstModel = new SessionBindingModel
+                        {
+                            DateSession = model.DateSession,
+                            SessionDuration = Convert.ToInt32((model.DateSession.AddDays(1).Date - model.DateSession).TotalMinutes),
+                            UserSessions = model.UserSessions
+                        };
+                        var secondModel = new SessionBindingModel
+                        {
+                            DateSession = model.DateSession.AddDays(1).Date,
+                            SessionDuration = model.SessionDuration - firstModel.SessionDuration,
+                            UserSessions = model.UserSessions
+                        };
 
-                        throw;
+                        CreateModel(firstModel, new Session(), _context);
+                        CreateModel(secondModel, new Session(), _context);
+                        _context.SaveChanges();
                     }
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+
+                    throw;
                 }
             }
         }

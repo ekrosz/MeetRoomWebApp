@@ -30,11 +30,13 @@ namespace MeetRoomWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<MeetRoomDbContext>();
-            services.AddDatabaseDeveloperPageExceptionFilter();
+            services.AddDbContext<MeetRoomDbContext>(options =>
+                options.UseNpgsql(Configuration.GetConnectionString("MeetRoomDatabaseConnection")));
+            services.AddDefaultIdentity<User>(options => 
+                options.SignIn.RequireConfirmedAccount = false)
+                    .AddEntityFrameworkStores<MeetRoomDbContext>();
 
-            services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<MeetRoomDbContext>();
+            services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
             services.AddRazorPages();
 

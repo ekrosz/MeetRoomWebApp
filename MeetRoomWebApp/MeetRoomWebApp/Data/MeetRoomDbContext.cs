@@ -9,15 +9,8 @@ namespace MeetRoomWebApp.Data
     /// </summary>
     public class MeetRoomDbContext : DbContext
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (optionsBuilder.IsConfigured == false)
-            {
-                optionsBuilder.UseNpgsql(@"Host=localhost;Port=5432;Database=MeetRoomDatabase;User Id=postgres;Password=1234;");
-            }
-
-            base.OnConfiguring(optionsBuilder);
-        }
+        public MeetRoomDbContext(DbContextOptions<MeetRoomDbContext> options)
+        : base(options) { }
 
         public virtual DbSet<User> Users { get; set; }
 
