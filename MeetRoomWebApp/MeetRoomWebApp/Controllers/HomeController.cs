@@ -40,7 +40,7 @@ namespace MeetRoomWebApp.Controllers
             if (currentWeek == null)
             {
                 // This week
-                currentWeek = $"{DateTime.Now.Year}-W{Math.Round((double)(DateTime.Now.DayOfYear / 7))}";
+                currentWeek = $"{DateTime.Now.Year}-W{Math.Round((double)DateTime.Now.DayOfYear / 7)}";
             }
 
             return View((UpdateData(currentWeek), time, currentWeek));
