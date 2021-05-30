@@ -3,15 +3,17 @@ using System;
 using MeetRoomWebApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MeetRoomWebApp.Migrations
 {
     [DbContext(typeof(MeetRoomDbContext))]
-    partial class MeetRoomDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210530113157_updateTypeColumn")]
+    partial class updateTypeColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

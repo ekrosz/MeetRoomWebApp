@@ -17,9 +17,9 @@ namespace MeetRoomWebApp.Data.Entities
         public DateTime DateSession { get; set; }
 
         [Required]
-        public int SessionDurationInMinutes { get; set; }
+        public TimeSpan SessionDuration { get; set; }
 
         [ForeignKey("SessionId")]
-        public virtual List<UserSession> ClientSessions { get; set; }
+        public virtual List<UserSession> UserSessions { get; set; }
     }
 }

@@ -1,10 +1,8 @@
 ﻿using MeetRoomWebApp.Models;
-using MeetRoomWebApp.Models.BindingModels;
 using MeetRoomWebApp.Models.Interfaces;
 using MeetRoomWebApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,48 +10,71 @@ using System.Linq;
 
 namespace MeetRoomWebApp.Controllers
 {
+    /// <summary>
+    /// The default controller responsible for the main page (view "Index").
+    /// Index contains: table of bookings.
+    /// </summary>
     public class HomeController : Controller
     {
+        /* 
+         * Magic number 49: so that the end of the axis is 00:00
+         * Magic number 30: it is 30 minutes (min axis step)
+         */
+        private readonly string[] time = Enumerable.Range(0, 49)
+                .Select(i => TimeSpan.FromMinutes(i * 30).ToString(@"hh\:mm"))
+                .ToArray();
+
         private readonly ISessionStorage _sessionStorage;
 
-        private readonly IUserStorage _userStorage;
-
-        public HomeController(ISessionStorage sessionStorage, IUserStorage userStorage)
+        public HomeController(ISessionStorage sessionStorage)
         {
             _sessionStorage = sessionStorage;
-            _userStorage = userStorage;
         }
 
         [Authorize]
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string currentWeek)
         {
-            DateTime dateTimeTemp = DateTime.Parse("00:00:00");
+            if (currentWeek == null)
+            {
+                // This week
+                currentWeek = $"{DateTime.Now.Year}-W{Math.Round((double)(DateTime.Now.DayOfYear / 7))}";
+            }
 
-            List<string> time = Enumerable.Range(0, 48)
-                .Select(i => dateTimeTemp.AddMinutes(i * 30).ToString("HH:mm"))
-                .ToList();
-
-            ViewBag.Users = _userStorage.GetFullList().Where(rec => rec.Email != User.Identity.Name);
-            ViewBag.Time = time;
-
-            return View(UpdateData());
+            return View((UpdateData(currentWeek), time, currentWeek));
         }
 
-        private Dictionary<DateTime, List<SessionViewModel>> UpdateData()
+        private Dictionary<DateTime, SessionViewModel[]> UpdateData(string currentWeek)
         {
-            int diff = (7 + (Program.DayInWeek.DayOfWeek - DayOfWeek.Monday)) % 7;
-            DateTime startOfWeek = Program.DayInWeek.AddDays(-1 * diff).Date;
+            Dictionary<DateTime, SessionViewModel[]> resultSessions = new Dictionary<DateTime, SessionViewModel[]>();
 
-            List<DateTime> daysInWeek = Enumerable.Range(0, 7).Select(d => startOfWeek.AddDays(d)).ToList();
+            int year = Convert.ToInt32(currentWeek.Split('-')[0]);
+            int week = Convert.ToInt32(currentWeek.Split('W')[1]);
 
-            Dictionary<DateTime, List<SessionViewModel>> resultSessions = new Dictionary<DateTime, List<SessionViewModel>>();
+            DateTime startOfWeek = new DateTime();
+
+            /*
+             * Magic number 1: DateTime startOfWeek = new DateTime() => startOfWeek = "01/01/0001"
+             * Magic number 3: difference of days between Thursday and Monday, because ("01/01/YYYY").AddDays(7 * week) is always Thursday
+             * Magic number 7: number of days in a week
+             */
+
+            startOfWeek = startOfWeek.AddYears(year - 1).AddDays((7 * week) - 3 - 1);
+
+            var sessionsOfWeek = _sessionStorage.GetFilteredListByWeek(startOfWeek, startOfWeek.AddDays(6))
+                    .OrderBy(rec => rec.DateSession)
+                    .ToList();
+
+            var daysInWeek = Enumerable.Range(0, 7)
+                .Select(d => startOfWeek.AddDays(d))
+                .ToArray();
 
             foreach(var date in daysInWeek)
             {
-                var sessionsOfDate = _sessionStorage.GetFilteredList(new SessionBindingModel { DateSession = date })
+                var sessionsOfDate = sessionsOfWeek
+                    .Where(rec => rec.DateSession.Date == date.Date)
                     .OrderBy(rec => rec.DateSession)
-                    .ToList();
+                    .ToArray();
 
                 resultSessions.Add(date, sessionsOfDate);
             }
@@ -61,69 +82,9 @@ namespace MeetRoomWebApp.Controllers
             return resultSessions;
         }
 
-        [HttpPost]
-        public IActionResult Index(DateTime bookingDateTime, DateTime duration, List<string> users)
+        public IActionResult GetWeek(string week)
         {
-            if (bookingDateTime <= DateTime.Now)
-            {
-                throw new Exception("Вы указали дату или время меньше текущего");
-            }
-            if (bookingDateTime.Minute % 30 != 0)
-            {
-                throw new Exception("Укажите корректное время начала сеанса");
-            }
-            if (duration.Minute + duration.Hour * 60 < 30 || duration.Minute % 30 != 0)
-            {
-                throw new Exception("Укажите корректную длительность сеанса");
-            }
-
-            Dictionary<string, string> usersDict = new Dictionary<string, string>();
-
-            var creator = _userStorage.GetElement(User.Identity.Name);
-
-            if (creator == null)
-            {
-                throw new Exception("Создатель сеанса не найден");
-            }
-
-            usersDict.Add(creator.Id, creator.Email);
-
-            foreach(var userId in users)
-            {
-                var userEmail = _userStorage.GetElement(userId).Email;
-
-                if(userEmail == null)
-                {
-                    throw new Exception("Добавленный гость не найден");
-                }
-
-                usersDict.Add(userId, userEmail);
-            }
-
-            _sessionStorage.Insert(new SessionBindingModel 
-            {
-                DateSession = bookingDateTime, 
-                SessionDuration = (duration.Hour * 60) + duration.Minute, 
-                UserSessions = usersDict
-            });
-
-            return Redirect("/Home/Index");
-        }
-
-        [HttpGet]
-        public IActionResult GetNextWeek()
-        {
-            Program.DayInWeek = Program.DayInWeek.AddDays(7);
-
-            return Redirect("/Home/Index");
-        }
-
-        [HttpGet]
-        public IActionResult GetLastWeek()
-        {
-            Program.DayInWeek = Program.DayInWeek.AddDays(-7);
-
-            return Redirect("/Home/Index");
+            return Redirect($"/Home/Index?currentWeek={week}");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

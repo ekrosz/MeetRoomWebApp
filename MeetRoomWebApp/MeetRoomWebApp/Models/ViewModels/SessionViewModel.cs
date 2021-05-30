@@ -12,8 +12,8 @@ namespace MeetRoomWebApp.Models.ViewModels
 
         public DateTime DateSession { get; set; }
 
-        public int SessionDurationInMinutes { get; set; }
+        public TimeSpan SessionDuration { get; set; }
 
-        public Dictionary<string, string> UserSessions { get; set; }
+        public List<UserViewModel> Guests { get; set; }
     }
 }

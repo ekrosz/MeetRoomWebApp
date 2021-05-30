@@ -1,5 +1,5 @@
-﻿+@using MeetRoomWebApp.Models.ViewModels;
-@model Dictionary<DateTime, List<SessionViewModel>>;
+﻿@using MeetRoomWebApp.Models.ViewModels;
+@model (Dictionary<DateTime, SessionViewModel[]>, string[], string);
 @{
     ViewData["Title"] = "Schedule";
 
@@ -9,110 +9,60 @@
     double heightSessionY = 0;
     double finishSessionY = 0;
     }
-<html>
+<html lang="en">
     <body class="bg-dark-blue">
         <div class="container bg-dark-blue">
             <div>
                 <div class="text-center">
                     <h2>MeetRoom: Schedule</h2>
-                    <form method="get">
-                        <div class="row flex-nowrap">
-                            <div class="col-sm-6 text-left">
-                                <button asp-action="GetLastWeek" class="btn btn-primary btn-bg-dark"><</button>
-                            </div>
-                            <div class="col-sm-6 text-right">
-                                <button asp-action="GetNextWeek" class="btn btn-primary btn-bg-dark">></button>
-                            </div>
+                    <form method="get" asp-action="GetWeek" class="mt-4">
+                        <div class="row justify-content-center">
+                            <input name="week" type="week" value="@Model.Item3" lang="en"/>
+                            <input type="submit" class="btn btn-bg-dark btn-primary" value="Set"/>
                         </div>
                     </form>
                 </div>
-                <p>
-                    <div class="row flex-nowrap">
-                        <div class="col-sm">
-                            <button type="button" class="btn btn-primary btn-bg-dark" data-toggle="modal" data-target="#ModalBookingNow">
-                                Book now
-                            </button>
-
-                            <!-- Modal window -->
-                            <form method="post">
-                                <div class="modal fade" id="ModalBookingNow" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title color-black" id="exampleModalLongTitle">Meet room booking</h5>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div>
-                                                    <label class="label-with-margin">Desired date: </label>
-                                                    <input id="bookingDate"
-                                                           name="bookingDateTime"
-                                                           class="form-control"
-                                                           type="datetime-local" />
-                                                </div>
-                                                <div>
-                                                    <label class="label-with-margin">Session duration: </label>
-                                                    <input id="duration"
-                                                           name="duration"
-                                                           class="form-control"
-                                                           type="time" />
-                                                </div>
-                                                <div>
-                                                    <label class="label-with-margin">Guests: </label>
-                                                    <select multiple
-                                                            id="users"
-                                                            name="users"
-                                                            class="form-control"
-                                                            asp-items="@(new MultiSelectList(ViewBag.Users, "Id", "Email"))"></select>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Book now</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Axis of days -->
-                        @foreach (var item in Model.Keys)
-                        {
-                            <div class="col-sm text-center">
-                                <h5>@(dayOfWeek = item.DayOfWeek.ToString())</h5>
-                                <h5>@(date = item.ToShortDateString())</h5>
-                            </div>
-                        }
+                <div class="row flex-nowrap mt-4">
+                    <div class="col-sm">
+                        <a asp-area="" asp-controller="Session" asp-action="Create" class="btn btn-primary btn-bg-dark">
+                            Book now
+                        </a>
                     </div>
-                </p>
+
+                    <!-- Axis of days -->
+                    @foreach (var item in Model.Item1.Keys)
+                    {
+                        <div class="col-sm text-center">
+                            <h5>@(dayOfWeek = item.DayOfWeek.ToString())</h5>
+                            <h5>@(date = item.ToShortDateString())</h5>
+                        </div>
+                    }
+                </div>
             </div>
 
             <div class="row flex-nowrap bg-black">
 
                 <!-- Time axis -->
                 <div class="col-lg bg-dark-blue">
-                    @foreach (var item in ViewBag.Time)
+                    @foreach (var item in Model.Item2)
                     {
                         <h5>@(item)</h5>
                     }
                 </div>
 
                 <!-- Days -->
-                @foreach (var item in Model)
+                @foreach (var item in Model.Item1)
                  {
                     <div class="col-lg col-margin-left bg-dark-blue" @(finishSessionY = 0)>
                         <!-- Sessions -->
                         @foreach (var session in item.Value)
                         {
-                            <div class="book-style text-center email" style="margin-top: @(startSessionY = (32 * (((session.DateSession.Hour * 60) + session.DateSession.Minute) / 30)) + 12 - finishSessionY)px; height: @(heightSessionY = 32 * session.SessionDurationInMinutes / 30)px;" @(finishSessionY += startSessionY + heightSessionY)>
+                            <div class="book-style text-center email" style="margin-top: @(startSessionY = (32 * (((session.DateSession.Hour * 60) + session.DateSession.Minute) / 30)) + 12 - finishSessionY)px; height: @(heightSessionY = 32 * session.SessionDuration.TotalMinutes / 30)px;" @(finishSessionY += startSessionY + heightSessionY)>
                                 <h5 class="color-black">Guests</h5>
                                 <!-- Guests -->
-                                @foreach (var user in session.UserSessions)
+                                @foreach (var user in session.Guests)
                                 {
-                                    <h6>@string.Join("\n", user.Value.Split('\n').Select(row => row.Remove(row.IndexOf('@'))))</h6>
+                                    <h6>@string.Join("\n", user.Email.Split('\n').Select(row => row.Remove(row.IndexOf('@'))))</h6>
                                 }
                             </div>
                         }

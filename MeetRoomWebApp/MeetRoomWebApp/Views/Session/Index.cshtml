@@ -1,0 +1,52 @@
+﻿@model IEnumerable<MeetRoomWebApp.Models.ViewModels.SessionViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<html>
+    <body class="bg-dark-blue">
+        <h1 class="color-white">My booking</h1>
+
+        <p>
+            <a class="btn btn-primary btn-bg-dark" asp-action="Create">Book now</a>
+        </p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Booking number
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.DateSession)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.SessionDuration)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Id)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DateSession)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.SessionDuration)
+                        </td>
+                        <td>
+                            <a class="color-white" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                            <a class="color-white" asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                            <a class="color-white" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </body>
+</html>

@@ -1,0 +1,54 @@
+﻿@model MeetRoomWebApp.Models.ViewModels.SessionViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<html>
+    <body class="bg-dark-blue">
+        <h1 class="color-white">Details</h1>
+
+        <div>
+            <h4 class="color-white">Booking number: @Model.Id</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3 color-white">
+                    Booking date:
+                </dt>
+                <dd class="col-sm-9 color-white">
+                    @Html.DisplayFor(model => model.DateSession)
+                </dd>
+                <dt class="col-sm-3 color-white">
+                    Booking duration:
+                </dt>
+                <dd class="col-sm-9 color-white">
+                    @Html.DisplayFor(model => model.SessionDuration)
+                </dd>
+            </dl>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            Guests
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Guests)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Email)
+                            </td>
+                        </tr>
+                    }
+                    <tr><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="color-white">
+            <a class="color-white" asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+            <a class="color-white" asp-action="Index">Back to List</a>
+        </div>
+    </body>
+</html>

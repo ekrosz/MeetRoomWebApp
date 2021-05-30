@@ -1,0 +1,48 @@
+﻿@model MeetRoomWebApp.Models.BindingModels.SessionBindingModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<html>
+    <body class="bg-dark-blue">
+        <h1 class="color-white">Edit</h1>
+
+        <h4 class="color-white">Booking number: @Model.Id</h4>
+        <hr />
+        <div class="row">
+            <div class="col-md-4">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <div class="form-group">
+                        <label class="control-label color-white">Booking date</label>
+                        <input asp-for="DateSession" class="form-control" readonly="readonly" />
+                        <span asp-validation-for="DateSession" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label color-white">Booking duration</label>
+                        <input asp-for="SessionDuration" class="form-control" readonly="readonly" />
+                        <span asp-validation-for="SessionDuration" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label color-white">Guests</label>
+                        <select multiple asp-for="Guests" class="form-control" asp-items="@ViewBag.GuestsId"></select>
+                        <span asp-validation-for="Guests" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Save" class="btn btn-primary btn-bg-dark" />
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div>
+            <a class="color-white" asp-action="Index">Back to List</a>
+        </div>
+    </body>
+</html>
+
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }
