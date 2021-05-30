@@ -16,19 +16,21 @@ namespace MeetRoomWebApp.Controllers
     /// </summary>
     public class HomeController : Controller
     {
-        /* 
-         * Magic number 49: so that the end of the axis is 00:00
-         * Magic number 30: it is 30 minutes (min axis step)
-         */
-        private readonly string[] time = Enumerable.Range(0, 49)
-                .Select(i => TimeSpan.FromMinutes(i * 30).ToString(@"hh\:mm"))
-                .ToArray();
+        public readonly string[] time;
 
         private readonly ISessionStorage _sessionStorage;
 
         public HomeController(ISessionStorage sessionStorage)
         {
             _sessionStorage = sessionStorage;
+
+             /* 
+             * Magic number 49: so that the end of the axis is 00:00
+             * Magic number 30: it is 30 minutes (min axis step)
+             */
+            time = Enumerable.Range(0, 49)
+                .Select(i => TimeSpan.FromMinutes(i * 30).ToString(@"hh\:mm"))
+                .ToArray();
         }
 
         [Authorize]
@@ -66,7 +68,7 @@ namespace MeetRoomWebApp.Controllers
                     .ToList();
 
             var daysInWeek = Enumerable.Range(0, 7)
-                .Select(d => startOfWeek.AddDays(d))
+                .Select(day => startOfWeek.AddDays(day))
                 .ToArray();
 
             foreach(var date in daysInWeek)
