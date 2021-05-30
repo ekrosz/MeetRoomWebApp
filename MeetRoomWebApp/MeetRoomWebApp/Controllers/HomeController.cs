@@ -16,7 +16,7 @@ namespace MeetRoomWebApp.Controllers
     /// </summary>
     public class HomeController : Controller
     {
-        public readonly string[] time;
+        private readonly string[] time;
 
         private readonly ISessionStorage _sessionStorage;
 
