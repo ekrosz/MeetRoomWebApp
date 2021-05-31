@@ -54,14 +54,16 @@ namespace MeetRoomWebApp.Controllers
             int week = Convert.ToInt32(currentWeek.Split('W')[1]);
 
             DateTime startOfWeek = new DateTime();
-
-            /*
-             * Magic number 1: DateTime startOfWeek = new DateTime() => startOfWeek = "01/01/0001"
-             * Magic number 3: difference of days between Thursday and Monday, because ("01/01/YYYY").AddDays(7 * week) is always Thursday
-             * Magic number 7: number of days in a week
-             */
-
-            startOfWeek = startOfWeek.AddYears(year - 1).AddDays((7 * week) - 3 - 1);
+             
+            // In the DayOfWeek enum, Sunday = 0
+            if (startOfWeek.AddYears(year - 1).DayOfWeek == DayOfWeek.Sunday)
+            {
+                startOfWeek = startOfWeek.AddYears(year - 1).AddDays((7 * week) - 6);
+            }
+            else
+            {
+                startOfWeek = startOfWeek.AddYears(year - 1).AddDays((7 * week) - (int)startOfWeek.AddYears(year - 1).DayOfWeek + 1);
+            }
 
             var sessionsOfWeek = _sessionStorage.GetFilteredListByWeek(startOfWeek, startOfWeek.AddDays(6))
                     .OrderBy(rec => rec.DateSession)
