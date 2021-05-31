@@ -34,10 +34,10 @@ namespace MeetRoomWebApp.Models.Implements
                     SessionDuration = rec.SessionDuration,
                     Guests = rec.UserSessions
                     .Where(userSession => userSession.SessionId == rec.Id)
-                    .Select(user => new UserViewModel
+                    .Select(userSession => new UserViewModel
                     {
-                        Id = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Id,
-                        Email = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Email
+                        Id = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Id,
+                        Email = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Email
                     })
                     .ToList()
                 })
@@ -57,10 +57,10 @@ namespace MeetRoomWebApp.Models.Implements
                     SessionDuration = rec.SessionDuration,
                     Guests = rec.UserSessions
                     .Where(userSession => userSession.SessionId == rec.Id)
-                    .Select(user => new UserViewModel
+                    .Select(userSession => new UserViewModel
                     {
-                        Id = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Id,
-                        Email = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Email
+                        Id = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Id,
+                        Email = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Email
                     })
                     .ToList()
                 })
@@ -87,10 +87,10 @@ namespace MeetRoomWebApp.Models.Implements
                     SessionDuration = rec.SessionDuration,
                     Guests = rec.UserSessions
                     .Where(userSession => userSession.SessionId == rec.Id)
-                    .Select(user => new UserViewModel
+                    .Select(userSession => new UserViewModel
                     {
-                        Id = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Id,
-                        Email = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Email
+                        Id = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Id,
+                        Email = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Email
                     })
                     .ToList()
                 })
@@ -112,10 +112,10 @@ namespace MeetRoomWebApp.Models.Implements
                     SessionDuration = session.SessionDuration,
                     Guests = session.UserSessions
                     .Where(userSession => userSession.SessionId == session.Id)
-                    .Select(user => new UserViewModel
+                    .Select(userSession => new UserViewModel
                     {
-                        Id = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Id,
-                        Email = _context.Users.FirstOrDefault(x => x.Id == user.UserId).Email
+                        Id = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Id,
+                        Email = _context.Users.FirstOrDefault(user => user.Id == userSession.UserId).Email
                     })
                     .ToList()
                 } :
