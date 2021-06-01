@@ -8,6 +8,11 @@ namespace MeetRoomWebApp.Annotations
     /// </summary>
     public class CustomTimeSpanAttribute : ValidationAttribute
     {
+        /// <summary>
+        /// Checking the correctness of the entered SessionDuration
+        /// </summary>
+        /// <param name="value">[TimeSpan] SessionDuration</param>
+        /// <returns>True or false</returns>
         public override bool IsValid(object value)
         {
             if (value != null)

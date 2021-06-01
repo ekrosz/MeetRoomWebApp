@@ -8,6 +8,11 @@ namespace MeetRoomWebApp.Annotations
     /// </summary>
     public class CustomDateTimeAttribute : ValidationAttribute
     {
+        /// <summary>
+        /// Checking the correctness of the entered DateSession
+        /// </summary>
+        /// <param name="value">[DateTime] DateSession</param>
+        /// <returns>True or false</returns>
         public override bool IsValid(object value)
         {
             if(value != null)

@@ -14,8 +14,14 @@ namespace MeetRoomWebApp.Controllers
     /// </summary>
     public class SessionController : Controller
     {
+        /// <summary>
+        /// Session interface.
+        /// </summary>
         private readonly ISessionStorage _sessionStorage;
 
+        /// <summary>
+        /// User interface.
+        /// </summary>
         private readonly IUserStorage _userStorage;
 
         public SessionController(ISessionStorage sessionStorage, IUserStorage userStorage)
@@ -24,14 +30,21 @@ namespace MeetRoomWebApp.Controllers
             _userStorage = userStorage;
         }
 
-        // GET: Session
+        /// <summary>
+        /// Loading the list of sessions
+        /// </summary>
+        /// <returns>Session list model</returns>
         [Authorize]
         public IActionResult Index()
         {
             return View(_sessionStorage.GetFilteredListByUser(User.Identity.Name));
         }
 
-        // GET: Session/Details/5
+        /// <summary>
+        /// Loading data for a specific session
+        /// </summary>
+        /// <param name="id">Session ID</param>
+        /// <returns>Specific session data (session model)</returns>
         public IActionResult Details(int? id)
         {
             if (id == null)
@@ -52,7 +65,10 @@ namespace MeetRoomWebApp.Controllers
             return View(session);
         }
 
-        // GET: Session/Create
+        /// <summary>
+        /// Loading data for the creation page (get-method)
+        /// </summary>
+        /// <returns>View</returns>
         public IActionResult Create()
         {
             ViewData["GuestsId"] = new MultiSelectList(
@@ -65,21 +81,30 @@ namespace MeetRoomWebApp.Controllers
             return View();
         }
 
-        // POST: Session/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// Session creation method (post-method)
+        /// </summary>
+        /// <param name="model">New session model</param>
+        /// <returns>Redirects to index page or leaves on create page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("Id,DateSession,SessionDuration,Guests")] SessionBindingModel model)
         {
             if (ModelState.IsValid)
             {
-                var creator = _userStorage.GetElement(User.Identity.Name);
+                try
+                {
+                    var creator = _userStorage.GetElement(User.Identity.Name);
 
-                model.Guests.Add(creator.Id);
-                _sessionStorage.Insert(model);
+                    model.Guests.Add(creator.Id);
+                    _sessionStorage.Insert(model);
 
-                return Redirect("/Home/Index");
+                    return Redirect("/Home/Index");
+                }
+                catch(Exception ex)
+                {
+                    ModelState.AddModelError("", "Error: " + ex.Message);
+                }
             }
 
             ViewData["GuestsId"] = new MultiSelectList(
@@ -92,7 +117,11 @@ namespace MeetRoomWebApp.Controllers
             return View(model);
         }
 
-        // GET: Session/Edit/5
+        /// <summary>
+        /// Loading data for a specific session (get-method)
+        /// </summary>
+        /// <param name="id">Session ID</param>
+        /// <returns>Specific session data (session model)</returns>
         public IActionResult Edit(int? id)
         {
             if (id == null)
@@ -128,9 +157,12 @@ namespace MeetRoomWebApp.Controllers
             });
         }
 
-        // POST: Session/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /// <summary>
+        /// Method for modifying data in the session (post-method)
+        /// </summary>
+        /// <param name="id">Session ID</param>
+        /// <param name="model">Session model</param>
+        /// <returns>Redirects to index page or leaves on create page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, [Bind("Id,DateSession,SessionDuration,Guests")] SessionBindingModel model)
@@ -149,8 +181,10 @@ namespace MeetRoomWebApp.Controllers
                     model.Guests.Add(creator.Id);
 
                     _sessionStorage.Update(model);
+
+                    return Redirect("/Session/Index");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     if (!SessionExists(model.Id.Value))
                     {
@@ -158,15 +192,26 @@ namespace MeetRoomWebApp.Controllers
                     }
                     else
                     {
-                        throw;
+                        ModelState.AddModelError("", "Error: " + ex.Message);
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
+
+            ViewData["GuestsId"] = new MultiSelectList(
+                _userStorage.GetFullList()
+                    .Where(rec => rec.Email != User.Identity.Name)
+                    .ToList(),
+                "Id",
+                "Email");
+
             return View(model);
         }
 
-        // GET: Session/Delete/5
+        /// <summary>
+        /// Loading data for a specific session (get-method)
+        /// </summary>
+        /// <param name="id">session ID</param>
+        /// <returns>Specific session data (session model)</returns>
         public IActionResult Delete(int? id)
         {
             if (id == null)
@@ -187,7 +232,11 @@ namespace MeetRoomWebApp.Controllers
             return View(session);
         }
 
-        // POST: Session/Delete/5
+        /// <summary>
+        /// Session deletion method by ID (post-method)
+        /// </summary>
+        /// <param name="id">Session ID</param>
+        /// <returns>Redirects to index page</returns>
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -200,6 +249,11 @@ namespace MeetRoomWebApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Checking for Session Existence by ID
+        /// </summary>
+        /// <param name="id">Session ID</param>
+        /// <returns>True or false</returns>
         private bool SessionExists(int id)
         {
             return _sessionStorage.GetFullList().Any(e => e.Id == id);

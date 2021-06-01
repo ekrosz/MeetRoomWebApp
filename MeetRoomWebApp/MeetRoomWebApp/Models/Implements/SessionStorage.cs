@@ -15,6 +15,9 @@ namespace MeetRoomWebApp.Models.Implements
     /// </summary>
     public class SessionStorage : ISessionStorage
     {
+        /// <summary>
+        /// Database context
+        /// </summary>
         private readonly MeetRoomDbContext _context;
 
         public SessionStorage(MeetRoomDbContext context)
@@ -22,6 +25,10 @@ namespace MeetRoomWebApp.Models.Implements
             _context = context;
         }
 
+        /// <summary>
+        /// Full list of sessions
+        /// </summary>
+        /// <returns>Session list</returns>
         public List<SessionViewModel> GetFullList()
         {
             return _context.Sessions
@@ -44,6 +51,12 @@ namespace MeetRoomWebApp.Models.Implements
                 .ToList();
         }
 
+        /// <summary>
+        /// List of sessions for the specified week
+        /// </summary>
+        /// <param name="dateFrom">Date of the first day of the week</param>
+        /// <param name="dateTo">Date of the last day of the week</param>
+        /// <returns>Session list</returns>
         public List<SessionViewModel> GetFilteredListByWeek(DateTime dateFrom, DateTime dateTo)
         {
             return _context.Sessions
@@ -67,6 +80,11 @@ namespace MeetRoomWebApp.Models.Implements
                 .ToList();
         }
 
+        /// <summary>
+        /// List of sessions the specified user is in
+        /// </summary>
+        /// <param name="user">User's email</param>
+        /// <returns>Session list</returns>
         public List<SessionViewModel> GetFilteredListByUser(string user)
         {
             var sessionIds = _context.UserSessions
@@ -94,9 +112,15 @@ namespace MeetRoomWebApp.Models.Implements
                     })
                     .ToList()
                 })
+                .OrderBy(rec => rec.DateSession)
                 .ToList();
         }
 
+        /// <summary>
+        /// Search for a session by ID
+        /// </summary>
+        /// <param name="model">Model with ID</param>
+        /// <returns>Session</returns>
         public SessionViewModel GetElement(SessionBindingModel model)
         {
             var session = _context.Sessions
@@ -122,16 +146,19 @@ namespace MeetRoomWebApp.Models.Implements
                 null;
         }
 
+        /// <summary>
+        /// Adding a new session to the database
+        /// </summary>
+        /// <param name="model">New session model</param>
         public void Insert(SessionBindingModel model)
         {
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    if ((model.DateSession.Date == model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes).Date) ||
-                        (model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes).Hour == 0 && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes).Minute == 0))
+                    if (CheckDoubleModel(model))
                     {
-                        CreateModel(model, new Session(), _context);
+                        CreateModel(model, new Session());
                         _context.SaveChanges();
                     }
                     else
@@ -149,8 +176,8 @@ namespace MeetRoomWebApp.Models.Implements
                             Guests = model.Guests
                         };
 
-                        CreateModel(firstModel, new Session(), _context);
-                        CreateModel(secondModel, new Session(), _context);
+                        CreateModel(firstModel, new Session());
+                        CreateModel(secondModel, new Session());
                         _context.SaveChanges();
                     }
 
@@ -165,12 +192,22 @@ namespace MeetRoomWebApp.Models.Implements
             }
         }
 
+        /// <summary>
+        /// Updating an existing session in the database
+        /// </summary>
+        /// <param name="model">New session model</param>
         public void Update(SessionBindingModel model)
         {
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
+                    if (!IntersectionСheck(model))
+                    {
+                        throw new Exception("there is already a booking during this period");
+                    }
+
+                    // Updating guests list
                     var sessionUsers = _context.UserSessions
                         .Where(rec => rec.SessionId == model.Id)
                         .ToList();
@@ -191,6 +228,35 @@ namespace MeetRoomWebApp.Models.Implements
                     }
                     _context.SaveChanges();
 
+                    // Updating DateSession and SessionDuration
+                    var session = _context.Sessions
+                        .FirstOrDefault(rec => rec.Id == model.Id);
+
+                    if (CheckDoubleModel(model))
+                    {
+                        session.DateSession = model.DateSession;
+                        session.SessionDuration = model.SessionDuration;
+
+                        _context.Sessions.Update(session);
+                    }
+                    else
+                    {
+                        session.DateSession = model.DateSession;
+                        session.SessionDuration = model.DateSession.AddDays(1).Date - model.DateSession;
+
+                        _context.Sessions.Update(session);
+
+                        var additionalModel = new SessionBindingModel
+                        {
+                            DateSession = model.DateSession.AddDays(1).Date,
+                            SessionDuration = model.SessionDuration - session.SessionDuration,
+                            Guests = model.Guests
+                        };
+
+                        CreateModel(additionalModel, new Session());
+                    }
+                    _context.SaveChanges();
+
                     transaction.Commit();
                 }
                 catch (Exception)
@@ -202,6 +268,10 @@ namespace MeetRoomWebApp.Models.Implements
             }
         }
 
+        /// <summary>
+        /// Removing the specified session from the database by identifier
+        /// </summary>
+        /// <param name="model">Session model with identifier</param>
         public void Delete(SessionBindingModel model)
         {
             var element = _context.Sessions
@@ -214,24 +284,20 @@ namespace MeetRoomWebApp.Models.Implements
             }
             else
             {
-                throw new Exception("Элемент не найден");
+                throw new Exception("booking not found!");
             }
         }
 
-        private Session CreateModel(SessionBindingModel model, Session session, MeetRoomDbContext context)
+        /// <summary>
+        /// Creating the "Session" model for the database
+        /// </summary>
+        /// <param name="model">User-created model</param>
+        /// <param name="session">Empty model for database</param>
+        private void CreateModel(SessionBindingModel model, Session session)
         {
-            var otherSessions = context.Sessions
-                .Where(rec => rec.DateSession.Date == model.DateSession.Date || rec.DateSession.Date == model.DateSession.AddDays(1).Date)
-                .OrderBy(rec => rec.DateSession);
-
-            foreach(var item in otherSessions)
+            if(!IntersectionСheck(model))
             {
-                if(model.DateSession < item.DateSession && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes) > item.DateSession ||
-                    model.DateSession < item.DateSession.AddMinutes(item.SessionDuration.TotalMinutes) && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes) > item.DateSession.AddMinutes(item.SessionDuration.TotalMinutes) ||
-                    model.DateSession > item.DateSession && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes) < item.DateSession.AddMinutes(item.SessionDuration.TotalMinutes))
-                {
-                    throw new Exception("В этом промежутке времени есть бронь");
-                }
+                throw new Exception("there is already a booking during this period!");
             }
 
             session.DateSession = model.DateSession;
@@ -239,37 +305,78 @@ namespace MeetRoomWebApp.Models.Implements
 
             if (session.Id == 0)
             {
-                    context.Sessions.Add(session);
-                    context.SaveChanges();
+                    _context.Sessions.Add(session);
+                    _context.SaveChanges();
             }
 
             if (model.Id.HasValue)
             {
-                var sessionUsers = context.UserSessions
+                var sessionUsers = _context.UserSessions
                     .Where(rec => rec.SessionId == model.Id.Value)
                     .ToList();
 
-                context.UserSessions
+                _context.UserSessions
                     .RemoveRange(sessionUsers
                         .Where(rec => !model.Guests
                             .Contains(rec.UserId))
                                 .ToList());
 
-                context.SaveChanges();
+                _context.SaveChanges();
             }
 
             foreach (var sessionUser in model.Guests)
             {
-                context.UserSessions.Add(new UserSession
+                _context.UserSessions.Add(new UserSession
                 {
                     SessionId = session.Id,
                     UserId = sessionUser
                 });
+            }
+            _context.SaveChanges();
+        }
 
-                context.SaveChanges();
+        /// <summary>
+        /// Checking the intersection of the specified session with other sessions
+        /// </summary>
+        /// <param name="model">Specified session</param>
+        /// <returns>True or false</returns>
+        private bool IntersectionСheck(SessionBindingModel model)
+        {
+                var otherSessions = _context.Sessions
+                    .Where(rec => (rec.DateSession.Date == model.DateSession.Date || rec.DateSession.Date == model.DateSession.AddDays(1).Date) && rec.Id != model.Id)
+                    .OrderBy(rec => rec.DateSession)
+                    .ToList();
+
+            foreach (var item in otherSessions)
+            {
+                if (model.DateSession < item.DateSession && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes) > item.DateSession ||
+                    model.DateSession < item.DateSession.AddMinutes(item.SessionDuration.TotalMinutes) && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes) > item.DateSession.AddMinutes(item.SessionDuration.TotalMinutes) ||
+                    model.DateSession > item.DateSession && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes) < item.DateSession.AddMinutes(item.SessionDuration.TotalMinutes))
+                {
+                    return false;
+                }
             }
 
-            return session;
+            return true;
+        }
+
+        /// <summary>
+        /// Checking session duration.
+        /// If the session starts and ends on the same day, true is returned.
+        /// </summary>
+        /// <param name="model">Specified session</param>
+        /// <returns>True or false</returns>
+        private bool CheckDoubleModel(SessionBindingModel model)
+        {
+            if ((model.DateSession.Date == model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes).Date) ||
+                (model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes).Hour == 0 && model.DateSession.AddMinutes(model.SessionDuration.TotalMinutes).Minute == 0))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

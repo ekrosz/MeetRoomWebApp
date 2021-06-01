@@ -9,6 +9,9 @@ namespace MeetRoomWebApp.Data.Entities
     /// </summary>
     public class User : IdentityUser
     {
+        /// <summary>
+        /// User foreign key
+        /// </summary>
         [ForeignKey("UserId")]
         public virtual List<UserSession> UserSessions { get; set; }
     }

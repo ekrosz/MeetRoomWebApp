@@ -12,6 +12,9 @@ namespace MeetRoomWebApp.Models.Implements
     /// </summary>
     public class UserStorage : IUserStorage
     {
+        /// <summary>
+        /// Database context
+        /// </summary>
         private readonly MeetRoomDbContext _context;
 
         public UserStorage(MeetRoomDbContext context)
@@ -19,6 +22,10 @@ namespace MeetRoomWebApp.Models.Implements
             _context = context;
         }
 
+        /// <summary>
+        /// Full list of users
+        /// </summary>
+        /// <returns>Session list</returns>
         public List<UserViewModel> GetFullList()
         {
             return _context.Users.Select(rec => new UserViewModel
@@ -28,6 +35,11 @@ namespace MeetRoomWebApp.Models.Implements
             }).ToList();
         }
 
+        /// <summary>
+        /// Search for a session by ID
+        /// </summary>
+        /// <param name="user">User's ID or Email</param>
+        /// <returns>User</returns>
         public UserViewModel GetElement(string user)
         {
             var result = _context.Users
