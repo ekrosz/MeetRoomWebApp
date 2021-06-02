@@ -81,15 +81,15 @@ namespace MeetRoomWebApp.Controllers
                 startOfWeek = startOfWeek.AddYears(year - 1).AddDays((7 * week) - (int)startOfWeek.AddYears(year - 1).DayOfWeek + 1);
             }
 
-            var sessionsOfWeek = _sessionStorage.GetFilteredListByWeek(startOfWeek, startOfWeek.AddDays(6))
-                    .OrderBy(rec => rec.DateSession)
-                    .ToList();
-
             var daysInWeek = Enumerable.Range(0, 7)
                 .Select(day => startOfWeek.AddDays(day))
                 .ToArray();
 
-            foreach(var date in daysInWeek)
+            var sessionsOfWeek = _sessionStorage.GetFilteredListByWeek(startOfWeek, startOfWeek.AddDays(6))
+                .OrderBy(rec => rec.DateSession)
+                .ToList();
+
+            foreach (var date in daysInWeek)
             {
                 var sessionsOfDate = sessionsOfWeek
                     .Where(rec => rec.DateSession.Date == date.Date)
