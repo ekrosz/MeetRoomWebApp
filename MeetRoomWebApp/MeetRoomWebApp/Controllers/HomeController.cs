@@ -107,9 +107,10 @@ namespace MeetRoomWebApp.Controllers
         /// </summary>
         /// <param name="week">Specified week</param>
         /// <returns>Updated data</returns>
+        [HttpGet]
         public IActionResult GetWeek(string week)
         {
-            return Redirect($"/Home/Index?currentWeek={week}");
+            return Redirect($"/Home/Index?selectedWeek={week}");
         }
 
         /// <summary>
